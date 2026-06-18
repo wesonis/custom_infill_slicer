@@ -21,3 +21,6 @@ deps/build-linux/*
 **/.idea/
 .pkg_cache
 CMakeUserPresets.json
+
+# WS
+local_reference
