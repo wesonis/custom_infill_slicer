@@ -1665,6 +1665,41 @@ void PrintConfigDef::init_fff_params()
     });
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipStars));
 
+    def = this->add("gyroid_period_x", coFloat);
+    def->label = L("Gyroid period X multiplier");
+    def->category = L("Infill");
+    def->tooltip = L("Multiplier on the gyroid wavelength along the X axis "
+                     "(rotated infill frame, same convention as fill_angle). "
+                     "1.0 leaves the pattern unchanged; 2.0 doubles the X period.");
+    def->sidetext = L("x");
+    def->min = 0.05;
+    def->max = 20.0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1.0));
+
+    def = this->add("gyroid_period_y", coFloat);
+    def->label = L("Gyroid period Y multiplier");
+    def->category = L("Infill");
+    def->tooltip = L("Multiplier on the gyroid wavelength along the Y axis "
+                     "(rotated infill frame). 1.0 leaves the pattern unchanged.");
+    def->sidetext = L("x");
+    def->min = 0.05;
+    def->max = 20.0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1.0));
+
+    def = this->add("gyroid_period_z", coFloat);
+    def->label = L("Gyroid period Z multiplier");
+    def->category = L("Infill");
+    def->tooltip = L("Multiplier on the gyroid wavelength along the world Z (build) axis. "
+                     "1.0 leaves the pattern unchanged; values >1 stretch the gyroid "
+                     "cell taller, slowing the phase change between layers.");
+    def->sidetext = L("x");
+    def->min = 0.05;
+    def->max = 20.0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1.0));
+
     def = this->add("first_layer_acceleration", coFloat);
     def->label = L("First layer");
     def->tooltip = L("This is the acceleration your printer will use for first layer. Set zero "
