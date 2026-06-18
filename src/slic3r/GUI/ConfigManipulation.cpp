@@ -307,6 +307,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
     toggle_field("infill_anchor", has_infill_anchors);
 
+    const bool is_gyroid = have_infill
+        && config->option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->value == ipGyroid;
+    for (auto el : { "gyroid_period_x", "gyroid_period_y", "gyroid_period_z" })
+        toggle_field(el, is_gyroid);
+
     bool has_spiral_vase         = config->opt_bool("spiral_vase");
     bool has_top_solid_infill 	 = config->opt_int("top_solid_layers") > 0;
     bool has_bottom_solid_infill = config->opt_int("bottom_solid_layers") > 0;
