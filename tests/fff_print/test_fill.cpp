@@ -1,23 +1,28 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 
+#include <memory>
 #include <numeric>
 #include <sstream>
 
 #include "libslic3r/libslic3r.h"
 
 #include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/Fill/FillBase.hpp"
 #include "libslic3r/Flow.hpp"
 #include "libslic3r/Layer.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/Surface.hpp"
 #include "libslic3r/SVG.hpp"
 
 #include "test_data.hpp"
 
 using namespace Slic3r;
 using namespace std::literals;
+using Catch::Approx;
 
 bool test_if_solid_surface_filled(const ExPolygon& expolygon, double flow_spacing, double angle = 0, double density = 1.0);
 
@@ -711,4 +716,65 @@ bool test_if_solid_surface_filled(const ExPolygon& expolygon, double flow_spacin
 #endif
 
     return uncovered.empty(); // solid surface is fully filled
+}
+
+TEST_CASE("Fill: Gyroid defaults produce a non-empty pattern", "[Fill][Gyroid]") {
+    std::unique_ptr<Fill> filler(Fill::new_from_type("gyroid"));
+    filler->angle   = 0.f;
+    filler->spacing = 0.5;
+    filler->z       = 1.0;
+
+    FillParams p;
+    p.density     = 0.2f;
+    p.dont_adjust = true;
+    REQUIRE(p.gyroid_period_x == Approx(1.0f));
+    REQUIRE(p.gyroid_period_y == Approx(1.0f));
+    REQUIRE(p.gyroid_period_z == Approx(1.0f));
+
+    Points pts {
+        Point::new_scale(0, 0),  Point::new_scale(50, 0),
+        Point::new_scale(50, 50), Point::new_scale(0, 50)
+    };
+    Surface surface(stInternal, ExPolygon(pts));
+
+    Polylines out = filler->fill_surface(&surface, p);
+    REQUIRE_FALSE(out.empty());
+}
+
+TEST_CASE("Fill: Gyroid Y-period multiplier roughly halves wave density", "[Fill][Gyroid]") {
+    auto run = [](float my) {
+        std::unique_ptr<Fill> filler(Fill::new_from_type("gyroid"));
+        filler->angle   = 0.f;
+        filler->spacing = 0.5;
+        filler->z       = 1.0;
+        FillParams p;
+        p.density     = 0.2f;
+        p.dont_adjust = true;
+        p.gyroid_period_y = my;
+        Points pts {
+            Point::new_scale(0,   0),   Point::new_scale(100, 0),
+            Point::new_scale(100, 100), Point::new_scale(0,   100)
+        };
+        Surface s(stInternal, ExPolygon(pts));
+        return filler->fill_surface(&s, p);
+    };
+    Polylines base     = run(1.0f);
+    Polylines stretchY = run(2.0f);
+    Polylines shrinkY  = run(0.5f);
+    REQUIRE_FALSE(base.empty());
+    REQUIRE_FALSE(stretchY.empty());
+    REQUIRE_FALSE(shrinkY.empty());
+    auto total_length = [](const Polylines &pls) {
+        double sum = 0; for (const auto &pl : pls) sum += pl.length(); return sum;
+    };
+    const double L_base  = total_length(base);
+    const double L_my2   = total_length(stretchY);
+    const double L_mypt5 = total_length(shrinkY);
+    INFO("base total_len=" << L_base);
+    INFO("my=2 total_len=" << L_my2);
+    INFO("my=0.5 total_len=" << L_mypt5);
+    // Doubling Y-period -> fewer, longer waves: total length drops noticeably.
+    // Halving Y-period  -> more, shorter waves: total length rises noticeably.
+    REQUIRE(L_my2   < 0.85 * L_base);
+    REQUIRE(L_mypt5 > 1.15 * L_base);
 }
