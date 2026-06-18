@@ -114,6 +114,12 @@ set(SLIC3R_SOURCES
     Fill/FillHoneycomb.hpp
     Fill/FillGyroid.cpp
     Fill/FillGyroid.hpp
+    Fill/FillTPMSBase.cpp
+    Fill/FillTPMSBase.hpp
+    Fill/FillSchwarzP.cpp
+    Fill/FillSchwarzP.hpp
+    Fill/FillSchwarzD.cpp
+    Fill/FillSchwarzD.hpp
     Fill/FillPlanePath.cpp
     Fill/FillPlanePath.hpp
     Fill/FillLine.cpp
