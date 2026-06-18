@@ -41,7 +41,8 @@ static inline double f(double x, double z_sin, double z_cos, bool vertical, bool
 
 static inline Polyline make_wave(
     const std::vector<Vec2d>& one_period, double width, double height, double offset, double scaleFactor,
-    double z_cos, double z_sin, bool vertical, bool flip)
+    double z_cos, double z_sin, bool vertical, bool flip,
+    double mx, double my)
 {
     std::vector<Vec2d> points = one_period;
     double period = points.back()(0);
@@ -66,7 +67,13 @@ static inline Polyline make_wave(
         point(1) = std::clamp(double(point.y()), 0., height);
         if (vertical)
             std::swap(point(0), point(1));
-        polyline.points.emplace_back((point * scaleFactor).cast<coord_t>());
+        // Keep the original (point * scaleFactor) expression for unchanged FP path,
+        // then apply per-axis multipliers in place. With defaults mx=my=1.0 the
+        // multiplications are exact no-ops (IEEE 754 guarantees x * 1.0 == x).
+        Vec2d scaled = point * scaleFactor;
+        scaled.x() *= mx;
+        scaled.y() *= my;
+        polyline.points.emplace_back(scaled.cast<coord_t>());
     }
 
     return polyline;
@@ -112,7 +119,9 @@ static std::vector<Vec2d> make_one_period(double width, double scaleFactor, doub
     return points;
 }
 
-static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double line_spacing, double width, double height)
+static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double line_spacing,
+                                   double width, double height,
+                                   double mx, double my, double mz)
 {
     const double scaleFactor = scale_(line_spacing) / density_adjusted;
 
@@ -122,7 +131,8 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
 
     //scale factor for 5% : 8 712 388
     // 1z = 10^-6 mm ?
-    const double z     = gridZ / scaleFactor;
+    // Z multiplier stretches the gyroid's Z period: larger mz -> slower trig-z change with world-z.
+    const double z     = gridZ / (scaleFactor * mz);
     const double z_sin = sin(z);
     const double z_cos = cos(z);
 
@@ -144,11 +154,11 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
 
     for (double y0 = lower_bound; y0 < upper_bound + EPSILON; y0 += M_PI) {
         // creates odd polylines
-        result.emplace_back(make_wave(one_period_odd, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip));
+        result.emplace_back(make_wave(one_period_odd, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip, mx, my));
         // creates even polylines
         y0 += M_PI;
         if (y0 < upper_bound + EPSILON) {
-            result.emplace_back(make_wave(one_period_even, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip));
+            result.emplace_back(make_wave(one_period_even, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip, mx, my));
         }
     }
 
@@ -172,19 +182,28 @@ void FillGyroid::_fill_surface_single(
     BoundingBox bb = expolygon.contour.bounding_box();
     // Density adjusted to have a good %of weight.
     double      density_adjusted = std::max(0., params.density * DensityAdjust);
-    // Distance between the gyroid waves in scaled coordinates.
-    coord_t     distance = coord_t(scale_(this->spacing) / density_adjusted);
+    // Distance between the gyroid waves in scaled coordinates (per-axis with multipliers).
+    coord_t     distance_base = coord_t(scale_(this->spacing) / density_adjusted);
+    coord_t     distance_x    = coord_t(distance_base * params.gyroid_period_x);
+    coord_t     distance_y    = coord_t(distance_base * params.gyroid_period_y);
 
-    // align bounding box to a multiple of our grid module
-    bb.merge(align_to_grid(bb.min, Point(2*M_PI*distance, 2*M_PI*distance)));
+    // align bounding box to a multiple of our (anisotropic) grid module
+    bb.merge(align_to_grid(bb.min,
+        Point(coord_t(2*M_PI*distance_x), coord_t(2*M_PI*distance_y))));
 
-    // generate pattern
+    // generate pattern. width/height are in radian units; the conversion back
+    // to scaled world coords (with mx/my baked in) happens inside make_wave.
+    // Match the original integer-division semantic so that defaults (mx=my=1)
+    // produce byte-identical output to the unmodified gyroid.
     Polylines polylines = make_gyroid_waves(
         scale_(this->z),
         density_adjusted,
         this->spacing,
-        ceil(bb.size()(0) / distance) + 1.,
-        ceil(bb.size()(1) / distance) + 1.);
+        ceil(bb.size()(0) / distance_x) + 1.,
+        ceil(bb.size()(1) / distance_y) + 1.,
+        params.gyroid_period_x,
+        params.gyroid_period_y,
+        params.gyroid_period_z);
 
 	// shift the polyline to the grid origin
 	for (Polyline &pl : polylines)

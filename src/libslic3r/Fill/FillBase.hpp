@@ -88,6 +88,13 @@ struct FillParams
 
     // For infills that produce closed loops to force printing those loops clockwise.
     bool        prefer_clockwise_movements { false };
+
+    // For FillGyroid: per-axis wavelength multipliers (default 1.0 = unchanged).
+    // X and Y act in the rotated infill frame (same convention as fill_angle).
+    // Z is the world build-axis.
+    float       gyroid_period_x { 1.0f };
+    float       gyroid_period_y { 1.0f };
+    float       gyroid_period_z { 1.0f };
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 

@@ -547,6 +547,12 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         params.use_arachne                = (perimeter_generator == PerimeterGeneratorType::Arachne && surface_fill.params.pattern == ipConcentric) || surface_fill.params.pattern == ipEnsuring;
         params.layer_height               = layerm.layer()->height;
         params.prefer_clockwise_movements = this->object()->print()->config().prefer_clockwise_movements;
+        {
+            const PrintRegionConfig &rc = layerm.region().config();
+            params.gyroid_period_x = float(rc.gyroid_period_x.value);
+            params.gyroid_period_y = float(rc.gyroid_period_y.value);
+            params.gyroid_period_z = float(rc.gyroid_period_z.value);
+        }
 
         for (ExPolygon &expoly : surface_fill.expolygons) {
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
