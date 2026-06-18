@@ -549,9 +549,9 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         params.prefer_clockwise_movements = this->object()->print()->config().prefer_clockwise_movements;
         {
             const PrintRegionConfig &rc = layerm.region().config();
-            params.gyroid_period_x = float(rc.gyroid_period_x.value);
-            params.gyroid_period_y = float(rc.gyroid_period_y.value);
-            params.gyroid_period_z = float(rc.gyroid_period_z.value);
+            params.tpms_period_x = float(rc.tpms_period_x.value);
+            params.tpms_period_y = float(rc.tpms_period_y.value);
+            params.tpms_period_z = float(rc.tpms_period_z.value);
         }
 
         for (ExPolygon &expoly : surface_fill.expolygons) {

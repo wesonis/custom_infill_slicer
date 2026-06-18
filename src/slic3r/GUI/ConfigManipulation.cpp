@@ -309,7 +309,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 
     const bool is_gyroid = have_infill
         && config->option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->value == ipGyroid;
-    for (auto el : { "gyroid_period_x", "gyroid_period_y", "gyroid_period_z" })
+    for (auto el : { "tpms_period_x", "tpms_period_y", "tpms_period_z" })
         toggle_field(el, is_gyroid);
 
     bool has_spiral_vase         = config->opt_bool("spiral_vase");

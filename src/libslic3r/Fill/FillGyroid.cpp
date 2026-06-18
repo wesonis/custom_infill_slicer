@@ -184,8 +184,8 @@ void FillGyroid::_fill_surface_single(
     double      density_adjusted = std::max(0., params.density * DensityAdjust);
     // Distance between the gyroid waves in scaled coordinates (per-axis with multipliers).
     coord_t     distance_base = coord_t(scale_(this->spacing) / density_adjusted);
-    coord_t     distance_x    = coord_t(distance_base * params.gyroid_period_x);
-    coord_t     distance_y    = coord_t(distance_base * params.gyroid_period_y);
+    coord_t     distance_x    = coord_t(distance_base * params.tpms_period_x);
+    coord_t     distance_y    = coord_t(distance_base * params.tpms_period_y);
 
     // align bounding box to a multiple of our (anisotropic) grid module
     bb.merge(align_to_grid(bb.min,
@@ -201,9 +201,9 @@ void FillGyroid::_fill_surface_single(
         this->spacing,
         ceil(bb.size()(0) / distance_x) + 1.,
         ceil(bb.size()(1) / distance_y) + 1.,
-        params.gyroid_period_x,
-        params.gyroid_period_y,
-        params.gyroid_period_z);
+        params.tpms_period_x,
+        params.tpms_period_y,
+        params.tpms_period_z);
 
 	// shift the polyline to the grid origin
 	for (Polyline &pl : polylines)

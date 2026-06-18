@@ -727,9 +727,9 @@ TEST_CASE("Fill: Gyroid defaults produce a non-empty pattern", "[Fill][Gyroid]")
     FillParams p;
     p.density     = 0.2f;
     p.dont_adjust = true;
-    REQUIRE(p.gyroid_period_x == Approx(1.0f));
-    REQUIRE(p.gyroid_period_y == Approx(1.0f));
-    REQUIRE(p.gyroid_period_z == Approx(1.0f));
+    REQUIRE(p.tpms_period_x == Approx(1.0f));
+    REQUIRE(p.tpms_period_y == Approx(1.0f));
+    REQUIRE(p.tpms_period_z == Approx(1.0f));
 
     Points pts {
         Point::new_scale(0, 0),  Point::new_scale(50, 0),
@@ -750,7 +750,7 @@ TEST_CASE("Fill: Gyroid Y-period multiplier roughly halves wave density", "[Fill
         FillParams p;
         p.density     = 0.2f;
         p.dont_adjust = true;
-        p.gyroid_period_y = my;
+        p.tpms_period_y = my;
         Points pts {
             Point::new_scale(0,   0),   Point::new_scale(100, 0),
             Point::new_scale(100, 100), Point::new_scale(0,   100)
