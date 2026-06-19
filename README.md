@@ -11,6 +11,8 @@ See the [Equation-Based-Lattice-Structure-Dataset](https://github.com/jwf23/Equa
 
 ![side by side](resources/fork_resources/combined.png)
 
+*left: default gyroid*, *right: 3.0x period modifier in y-direction gyroid*
+
 ## Purpose
 
 The motivation here is to move the work of producing TPMS lattices from typical design tools into the slicer itself, like any other infill pattern. 
