@@ -141,6 +141,8 @@ static const t_config_enum_values s_keys_map_InfillPattern {
     { "honeycomb",          ipHoneycomb },
     { "3dhoneycomb",        ip3DHoneycomb },
     { "gyroid",             ipGyroid },
+    { "schwarzp",           ipSchwarzP },
+    { "schwarzd",           ipSchwarzD },
     { "hilbertcurve",       ipHilbertCurve },
     { "archimedeanchords",  ipArchimedeanChords },
     { "octagramspiral",     ipOctagramSpiral },
@@ -1655,6 +1657,8 @@ void PrintConfigDef::init_fff_params()
         { "honeycomb",          L("Honeycomb")},
         { "3dhoneycomb",        L("3D Honeycomb")},
         { "gyroid",             L("Gyroid")},
+        { "schwarzp",           L("Schwarz P")},
+        { "schwarzd",           L("Schwarz D")},
         { "hilbertcurve",       L("Hilbert Curve")},
         { "archimedeanchords",  L("Archimedean Chords")},
         { "octagramspiral",     L("Octagram Spiral")},
@@ -1665,11 +1669,12 @@ void PrintConfigDef::init_fff_params()
     });
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipStars));
 
-    def = this->add("gyroid_period_x", coFloat);
-    def->label = L("Gyroid period X multiplier");
+    def = this->add("tpms_period_x", coFloat);
+    def->label = L("TPMS period X multiplier");
     def->category = L("Infill");
-    def->tooltip = L("Multiplier on the gyroid wavelength along the X axis "
+    def->tooltip = L("Multiplier on the TPMS wavelength along the X axis "
                      "(rotated infill frame, same convention as fill_angle). "
+                     "Applies to Gyroid, Schwarz P, and Schwarz D infill. "
                      "1.0 leaves the pattern unchanged; 2.0 doubles the X period.");
     def->sidetext = L("x");
     def->min = 0.05;
@@ -1677,23 +1682,25 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(1.0));
 
-    def = this->add("gyroid_period_y", coFloat);
-    def->label = L("Gyroid period Y multiplier");
+    def = this->add("tpms_period_y", coFloat);
+    def->label = L("TPMS period Y multiplier");
     def->category = L("Infill");
-    def->tooltip = L("Multiplier on the gyroid wavelength along the Y axis "
-                     "(rotated infill frame). 1.0 leaves the pattern unchanged.");
+    def->tooltip = L("Multiplier on the TPMS wavelength along the Y axis "
+                     "(rotated infill frame). Applies to Gyroid, Schwarz P, and Schwarz D infill. "
+                     "1.0 leaves the pattern unchanged.");
     def->sidetext = L("x");
     def->min = 0.05;
     def->max = 20.0;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(1.0));
 
-    def = this->add("gyroid_period_z", coFloat);
-    def->label = L("Gyroid period Z multiplier");
+    def = this->add("tpms_period_z", coFloat);
+    def->label = L("TPMS period Z multiplier");
     def->category = L("Infill");
-    def->tooltip = L("Multiplier on the gyroid wavelength along the world Z (build) axis. "
-                     "1.0 leaves the pattern unchanged; values >1 stretch the gyroid "
-                     "cell taller, slowing the phase change between layers.");
+    def->tooltip = L("Multiplier on the TPMS wavelength along the world Z (build) axis. "
+                     "Applies to Gyroid, Schwarz P, and Schwarz D infill. "
+                     "1.0 leaves the pattern unchanged; values >1 stretch the unit cell "
+                     "taller, slowing the phase change between layers.");
     def->sidetext = L("x");
     def->min = 0.05;
     def->max = 20.0;

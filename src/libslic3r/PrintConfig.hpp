@@ -103,7 +103,7 @@ enum class FuzzySkinType {
 
 enum InfillPattern : int {
     ipRectilinear, ipMonotonic, ipMonotonicLines, ipAlignedRectilinear, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
-    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipSupportBase,
+    ipGyroid, ipSchwarzP, ipSchwarzD, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipSupportBase,
     ipLightning,
     ipEnsuring,
     ipZigZag,
@@ -760,9 +760,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                fill_angle))
     ((ConfigOptionPercent,              fill_density))
     ((ConfigOptionEnum<InfillPattern>,  fill_pattern))
-    ((ConfigOptionFloat,                gyroid_period_x))
-    ((ConfigOptionFloat,                gyroid_period_y))
-    ((ConfigOptionFloat,                gyroid_period_z))
+    ((ConfigOptionFloat,                tpms_period_x))
+    ((ConfigOptionFloat,                tpms_period_y))
+    ((ConfigOptionFloat,                tpms_period_z))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_dist))

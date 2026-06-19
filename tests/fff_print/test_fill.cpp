@@ -727,9 +727,9 @@ TEST_CASE("Fill: Gyroid defaults produce a non-empty pattern", "[Fill][Gyroid]")
     FillParams p;
     p.density     = 0.2f;
     p.dont_adjust = true;
-    REQUIRE(p.gyroid_period_x == Approx(1.0f));
-    REQUIRE(p.gyroid_period_y == Approx(1.0f));
-    REQUIRE(p.gyroid_period_z == Approx(1.0f));
+    REQUIRE(p.tpms_period_x == Approx(1.0f));
+    REQUIRE(p.tpms_period_y == Approx(1.0f));
+    REQUIRE(p.tpms_period_z == Approx(1.0f));
 
     Points pts {
         Point::new_scale(0, 0),  Point::new_scale(50, 0),
@@ -750,7 +750,7 @@ TEST_CASE("Fill: Gyroid Y-period multiplier roughly halves wave density", "[Fill
         FillParams p;
         p.density     = 0.2f;
         p.dont_adjust = true;
-        p.gyroid_period_y = my;
+        p.tpms_period_y = my;
         Points pts {
             Point::new_scale(0,   0),   Point::new_scale(100, 0),
             Point::new_scale(100, 100), Point::new_scale(0,   100)
@@ -777,4 +777,88 @@ TEST_CASE("Fill: Gyroid Y-period multiplier roughly halves wave density", "[Fill
     // Halving Y-period  -> more, shorter waves: total length rises noticeably.
     REQUIRE(L_my2   < 0.85 * L_base);
     REQUIRE(L_mypt5 > 1.15 * L_base);
+}
+
+TEST_CASE("Fill: SchwarzD defaults produce a non-empty pattern", "[Fill][SchwarzD]") {
+    std::unique_ptr<Fill> filler(Fill::new_from_type("schwarzd"));
+    filler->angle = 0.f; filler->spacing = 0.5; filler->z = 1.0;
+    FillParams p;
+    p.density     = 0.2f;
+    p.dont_adjust = true;
+    Points pts {
+        Point::new_scale(0, 0),  Point::new_scale(50, 0),
+        Point::new_scale(50, 50), Point::new_scale(0, 50)
+    };
+    Surface s(stInternal, ExPolygon(pts));
+    Polylines out = filler->fill_surface(&s, p);
+    REQUIRE_FALSE(out.empty());
+}
+
+TEST_CASE("Fill: SchwarzD Y-period multiplier shortens total path", "[Fill][SchwarzD]") {
+    auto run = [](float my) {
+        std::unique_ptr<Fill> filler(Fill::new_from_type("schwarzd"));
+        filler->angle = 0.f; filler->spacing = 0.5; filler->z = 1.0;
+        FillParams p;
+        p.density     = 0.2f;
+        p.dont_adjust = true;
+        p.tpms_period_y = my;
+        Points pts {
+            Point::new_scale(0,   0),   Point::new_scale(100, 0),
+            Point::new_scale(100, 100), Point::new_scale(0,   100)
+        };
+        Surface s(stInternal, ExPolygon(pts));
+        return filler->fill_surface(&s, p);
+    };
+    auto total_length = [](const Polylines &pls) {
+        double sum = 0; for (const auto &pl : pls) sum += pl.length(); return sum;
+    };
+    const double L_base = total_length(run(1.0f));
+    const double L_my2  = total_length(run(2.0f));
+    REQUIRE(L_base > 0.);
+    REQUIRE(L_my2  > 0.);
+    // Looser margin than gyroid: D's arctan-based path-length response per cell
+    // is slightly weaker but should still drop with stretched Y.
+    REQUIRE(L_my2 < 0.9 * L_base);
+}
+
+TEST_CASE("Fill: SchwarzP defaults produce a non-empty pattern", "[Fill][SchwarzP]") {
+    std::unique_ptr<Fill> filler(Fill::new_from_type("schwarzp"));
+    filler->angle = 0.f; filler->spacing = 0.5; filler->z = 1.0;
+    FillParams p;
+    p.density     = 0.2f;
+    p.dont_adjust = true;
+    Points pts {
+        Point::new_scale(0, 0),  Point::new_scale(50, 0),
+        Point::new_scale(50, 50), Point::new_scale(0, 50)
+    };
+    Surface s(stInternal, ExPolygon(pts));
+    Polylines out = filler->fill_surface(&s, p);
+    REQUIRE_FALSE(out.empty());
+}
+
+TEST_CASE("Fill: SchwarzP Y-period multiplier shortens total path", "[Fill][SchwarzP]") {
+    auto run = [](float my) {
+        std::unique_ptr<Fill> filler(Fill::new_from_type("schwarzp"));
+        filler->angle = 0.f; filler->spacing = 0.5; filler->z = 1.0;
+        FillParams p;
+        p.density     = 0.2f;
+        p.dont_adjust = true;
+        p.tpms_period_y = my;
+        Points pts {
+            Point::new_scale(0,   0),   Point::new_scale(100, 0),
+            Point::new_scale(100, 100), Point::new_scale(0,   100)
+        };
+        Surface s(stInternal, ExPolygon(pts));
+        return filler->fill_surface(&s, p);
+    };
+    auto total_length = [](const Polylines &pls) {
+        double sum = 0; for (const auto &pl : pls) sum += pl.length(); return sum;
+    };
+    const double L_base = total_length(run(1.0f));
+    const double L_my2  = total_length(run(2.0f));
+    REQUIRE(L_base > 0.);
+    REQUIRE(L_my2  > 0.);
+    // Schwarz P has gap regions, so its length response is less predictable than
+    // gyroid/D - use a generous lower bound.
+    REQUIRE(L_my2 < 0.95 * L_base);
 }
