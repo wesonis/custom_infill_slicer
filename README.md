@@ -38,7 +38,7 @@ Import your part as usual, go to `Print Settings` tab, and you'll see the additi
 
 ## Example
 
-For normal gyroid infill, just leave all the period modifiers set to 0.
+For normal gyroid infill, just leave all the period modifiers set to 1.0.
 
 ![normal gyroid](resources/fork_resources/regular_gyroid.png)
 
