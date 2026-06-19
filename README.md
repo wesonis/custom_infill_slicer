@@ -1,3 +1,82 @@
+# Custom Infill Slicer
+
+This is a work-in-progress fork of [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) I'm building to get more direct control over TPMS infill patterns. This work is being done in support of an overarching project relating to fluid flow through such patterns, but I chose to fork PrusaSlicer and make this public in case anyone else finds it useful.
+
+*TPMS* = *Triply Periodic Minimal Surface*.
+
+See the [Equation-Based-Lattice-Structure-Dataset](https://github.com/jwf23/Equation-Based-Lattice-Structure-Dataset) repo [1] for a thorough reference on TPMS definitions.
+
+[1] J. W. Fisher, S. W. Miller, J. Bartolai, T. W. Simpson, and M. A. Yukish, “Catalog of triply periodic minimal surfaces, equation-based lattice structures, and their homogenized property data,” Data in Brief, vol. 49, p. 109311, Aug. 2023, doi: 10.1016/j.dib.2023.109311.
+
+
+![side by side](resources/fork_resources/combined.png)
+
+## Purpose
+
+The motivation here is to move the work of producing TPMS lattices from typical design tools into the slicer itself, like any other infill pattern. 
+The issue I've faced with the *TPMS Lattice STL* -> *Slicer* approach is that many of the automatic infill optimizations
+are lost, modifiers that would typically be available for infill are not available unless you want to regenerate the STL mesh,
+and everything is treated as a perimeter or thin wall instead of an infill pattern. This leads to slow prints, weird travel paths, and so on.
+
+The main additions here are the following:
+
+- Adds Schwarz P and Schwarz D alongside the existing gyroid infill patterns.
+- Adds three per-axis period multipliers (`tpms_period_x / _y / _z`) so you can stretch
+the unit cell along any axis without touching your STL.
+
+Everything else is the same as the upstream PrusaSlicer and slic3r.
+
+## Using the additional patterns
+
+Import your part as usual, go to `Print Settings` tab, and you'll see the additional options under `Infill`. 
+
+*Note*: The period modifiers will only show up under expert mode.
+
+![print settings menu](resources/fork_resources/print_settings.png)
+
+## Example
+
+For normal gyroid infill, just leave all the period modifiers set to 0.
+
+![normal gyroid](resources/fork_resources/regular_gyroid.png)
+
+With a 3.0x modifier in the y direction:
+
+![3y gyroid](resources/fork_resources/3y_gyroid.png)
+
+*Note*: The infill percentage is the only way I have at the moment of tweaking the density, but it's not precisely calibrated to match the density of the default gyroid pattern or anything (see the examples above - you'll notice the 'filament used' metric for the 'internal infill' to be noticeably different when the 3.0x y-direction modifier is added). You may need to play around with this a bit if this is important to you.
+
+## Changes
+
+All of the major changes are in `src/libslic3r/` and `src/slic3r/GUI`. 
+
+*Question*: Why PrusaSlicer specifically instead of slic3r when all of the changes are in the slic3r directory?
+
+*Answer*: I have a Prusa Mini, I've always used PrusaSlicer - I imagine the changes could be applied directly to slic3r or any other fork of slic3r, but this is just a personal project and modifying PrusaSlicer directly happened to be the path of least resistance.
+
+`src/libslic3r/CMakeLists.txt`
+`src/libslic3r/Fill/Fill.cpp`
+`src/libslic3r/Fill/FillBase.cpp`
+`src/libslic3r/Fill/FillBase.hpp`
+`src/libslic3r/Fill/FillGyroid.cpp`
+`src/libslic3r/Fill/FillGyroid.hpp`
+`src/libslic3r/Fill/FillSchwarzD.cpp`
+`src/libslic3r/Fill/FillSchwarzD.hpp`
+`src/libslic3r/Fill/FillSchwarzP.cpp`
+`src/libslic3r/Fill/FillSchwarzP.hpp`
+`src/libslic3r/Fill/FillTPMSBase.cpp`
+`src/libslic3r/Fill/FillTPMSBase.hpp`
+`src/libslic3r/Preset.cpp`
+`src/libslic3r/PrintConfig.cpp`
+`src/libslic3r/PrintConfig.hpp`
+`src/slic3r/GUI/ConfigManipulation.cpp`
+`src/slic3r/GUI/Tab.cpp`
+
+
+---
+***Original PrusaSlicer README below***
+---
+
 
 ![PrusaSlicer logo](/resources/icons/PrusaSlicer.png?raw=true)
 
