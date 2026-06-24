@@ -68,14 +68,21 @@ SET PS_DEPS_PATH_FILE_NAME=.DEPS_PATH.txt
 SET PS_DEPS_PATH_FILE=%~dp0deps\build\%PS_DEPS_PATH_FILE_NAME%
 SET PS_CONFIG_LIST="Debug;MinSizeRel;Release;RelWithDebInfo"
 
+REM CMake 4.x removed compatibility with cmake_minimum_required(VERSION < 3.5),
+REM which several bundled and downloaded dependencies still declare. Shim it so
+REM CMake 4.x (e.g. the build bundled with Visual Studio 2026) can configure them.
+REM This env var is inherited by all child cmake processes, including the deps
+REM ExternalProject sub-builds. Remove if building with CMake 3.x.
+SET CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 REM Update this script for new versions by setting PS_VERSION_SUPPORTED to a
 REM new minimum version and setting PS_VERSION_EXCEEDED to the maximum supported
 REM version plus one.
 REM The officially supported toolchain versions are:
 REM   Minimum: 16 (Visual Studio 2019)
-REM   Maximum: 17 (Visual Studio 2022)
+REM   Maximum: 18 (Visual Studio 2026)
 SET PS_VERSION_SUPPORTED=16
-SET PS_VERSION_EXCEEDED=18
+SET PS_VERSION_EXCEEDED=19
 SET VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe
 IF NOT EXIST "%VSWHERE%" SET VSWHERE=%ProgramFiles%\Microsoft Visual Studio\Installer\vswhere.exe
 FOR /F "tokens=4 USEBACKQ delims=." %%I IN (`"%VSWHERE%" -nologo -property productId`) DO SET PS_PRODUCT_DEFAULT=%%I
@@ -175,6 +182,13 @@ IF NOT EXIST "%MSVC_DIR%" (
 )
 REM Cmake always defaults to latest supported MSVC generator. Let's make sure it uses what we select.
 FOR /F "tokens=* USEBACKQ" %%I IN (`^""%VSWHERE%" %MSVC_FILTER% -nologo -property catalog_productLineVersion^"`) DO SET PS_PRODUCT_VERSION=%%I
+REM vswhere's catalog_productLineVersion returns the calendar year for VS2019/2022,
+REM but returns the major version (18) for VS2026, producing an invalid CMake
+REM generator name ("Visual Studio 18 18"). Map the major version to the generator
+REM year so CMAKE_GENERATOR is valid (e.g. "Visual Studio 18 2026").
+IF "%PS_VERSION%"=="16" SET PS_PRODUCT_VERSION=2019
+IF "%PS_VERSION%"=="17" SET PS_PRODUCT_VERSION=2022
+IF "%PS_VERSION%"=="18" SET PS_PRODUCT_VERSION=2026
 
 REM Give the user a chance to cancel if we found something odd.
 IF "%PS_ASK_TO_CONTINUE%" EQU "" GOTO :BUILD_ENV

@@ -74,6 +74,12 @@ All of the major changes are in `src/libslic3r/` and `src/slic3r/GUI`.
 `src/slic3r/GUI/ConfigManipulation.cpp`
 `src/slic3r/GUI/Tab.cpp`
 
+## Building
+
+See [`WINDOWS_BUILD_NOTES.md`](WINDOWS_BUILD_NOTES.md) for building this fork on Windows
+with a modern toolchain (Visual Studio 2026 / CMake 4.x), incremental rebuilds, and
+packaging a shareable bundle. Otherwise the upstream instructions in [`doc/`](doc/) apply.
+
 
 ---
 ***Original PrusaSlicer README below***
